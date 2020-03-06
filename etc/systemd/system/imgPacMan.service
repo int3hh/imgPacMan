@@ -1,0 +1,11 @@
+[Unit]
+Description=imgPacMan Service
+
+[Service]
+User=www-data
+Group=www-data
+Restart=on-failure
+ExecStart=/usr/bin/imgPacMan
+
+[Install]
+WantedBy=multi-user.target

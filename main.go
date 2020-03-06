@@ -37,6 +37,7 @@ var allowedExtensions = [...]string{"jpeg", "jpg", "png"}
 var processChan chan string
 var last string
 var folders Config
+var isDebug = "true"
 
 func getFiles(folder string) {
 	filepath.Walk(folder, func(path string, info os.FileInfo, err error) error {
@@ -64,6 +65,13 @@ func parseSize(str string) (int, int) {
 }
 
 func getFolderFromFile(path string) (Folder, error) {
+
+	for _, folder := range folders.Config {
+		if strings.Compare(path, folder.Path) == 0 {
+			return folder, nil
+		}
+	}
+
 	for _, folder := range folders.Config {
 		if strings.HasPrefix(path, folder.Path) {
 			return folder, nil
@@ -98,7 +106,12 @@ func main() {
 	}()
 
 	defer watch.Close()
-	cfgData, err := ioutil.ReadFile("config.yaml")
+	configPath := "config.yaml"
+	if isDebug == "false" {
+		configPath = "/etc/imagePacMan/config.yaml"
+	}
+	log.Println("Loading config from " + configPath)
+	cfgData, err := ioutil.ReadFile(configPath)
 	if err == nil {
 		err = yaml.Unmarshal(cfgData, &folders)
 		if err == nil {
@@ -188,7 +201,7 @@ func main() {
 			log.Panic("Config file is invalid")
 		}
 	} else {
-		log.Panic("Unable to read config file")
+		log.Panic("Unable to read config file " + err.Error())
 	}
 
 }

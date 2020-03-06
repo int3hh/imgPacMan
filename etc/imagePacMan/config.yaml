@@ -1,0 +1,4 @@
+Folders:
+    - path: "/var/www/images/"
+      size: "350x350"
+      thumb: "120x120"
