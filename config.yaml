@@ -1,4 +1,4 @@
 Folders:
-    - path: "imgPacMan/test"
-      size: "350x350"
-      thumb: "120x120"
+    - path: "/home/int3h/wrk/asti/public/uimages"
+      size: "350x"
+      thumb: "120x120,sc"

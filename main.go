@@ -24,13 +24,9 @@ type Config struct {
 }
 type folderz []Folder
 type Folder struct {
-	Path   string `yaml:"path"`
-	Size   string `yaml:"size"`
-	Thumb  string `yaml:"thumb"`
-	ImageW int
-	ImageH int
-	ThumbW int
-	ThumbH int
+	Path  string `yaml:"path"`
+	Size  string `yaml:"size"`
+	Thumb string `yaml:"thumb"`
 }
 
 var allowedExtensions = [...]string{"jpeg", "jpg", "png"}
@@ -133,16 +129,20 @@ func main() {
 					if err != nil && os.IsNotExist(err) {
 						fsource, err := ioutil.ReadFile(fname)
 						if err == nil {
-							fdest, err := imageproxy.Transform(fsource, imageproxy.Options{Width: float64(folder.ImageW), Height: float64(folder.ImageH)})
-							if err == nil {
-								log.Println("Gen resized image ... " + fname)
-								ioutil.WriteFile(fname, fdest, 0644)
+							if len(folder.Size) > 0 {
+								fdest, err := imageproxy.Transform(fsource, imageproxy.ParseOptions(folder.Size))
+								if err == nil {
+									log.Println("Gen resized image ... " + fname)
+									ioutil.WriteFile(fname, fdest, 0644)
+								} else {
+									log.Println(err.Error())
+								}
 							}
 
-							if folder.ThumbH > 0 && folder.ThumbW > 0 {
+							if len(folder.Thumb) > 0 {
 								fsource, err := ioutil.ReadFile(fname)
 								if err == nil {
-									fdest, err := imageproxy.Transform(fsource, imageproxy.Options{Width: float64(folder.ThumbW), Height: float64(folder.ThumbH)})
+									fdest, err := imageproxy.Transform(fsource, imageproxy.ParseOptions(folder.Thumb))
 									if err == nil {
 										log.Println("Gen thumb ... " + thumb)
 										ioutil.WriteFile(thumb, fdest, 0644)
@@ -154,7 +154,7 @@ func main() {
 				}
 			}()
 
-			for k, folder := range folders.Config {
+			for _, folder := range folders.Config {
 				log.Println("Processing folder ... " + folder.Path)
 				if _, err = os.Stat(folder.Path); os.IsNotExist(err) {
 					log.Panic("Folder does not exist " + folder.Path)
@@ -162,19 +162,7 @@ func main() {
 
 				hasOne := false
 
-				if len(folder.Size) > 0 {
-					folders.Config[k].ImageW, folders.Config[k].ImageH = parseSize(folder.Size)
-					if folders.Config[k].ImageW+folders.Config[k].ImageH == 0 {
-						log.Panic("Invalid size for: " + folder.Path)
-					}
-					hasOne = true
-				}
-
-				if len(folder.Thumb) > 0 {
-					folders.Config[k].ThumbW, folders.Config[k].ThumbH = parseSize(folder.Thumb)
-					if folders.Config[k].ThumbW+folders.Config[k].ThumbH == 0 {
-						log.Panic("Invalid size for: " + folder.Path)
-					}
+				if len(folder.Size) > 0 || len(folder.Thumb) > 0 {
 					hasOne = true
 				}
 
